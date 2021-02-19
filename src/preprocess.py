@@ -1,12 +1,13 @@
 """
-Preprocessing steps done on the Delhi weather dataset.
+Preprocessing num_days done on the Delhi weather dataset.
 
 Written by Tanmay Patil
 """
 
+from typing import List
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 
 def read_csv(file_path: str) -> pd.DataFrame:
@@ -64,6 +65,33 @@ def wind_dir_to_deg(data_frame: pd.DataFrame, deg: int = 45) -> pd.DataFrame:
                                     ["West", "West", "East", "East", "North", "South", "North", "South", "North"])
     data_frame["wdire"]= data_frame["wdire"].replace(["North","NE", "East","SE", "South","SW", "West", "NW"], deg_list)
     return data_frame
+
+def object_to_date_time(data_frame: pd.DataFrame) -> pd.DataFrame:
+    data_frame["datetimeutc"] = pd.to_datetime(data_frame["datetimeutc"])
+    data_frame.set_index("datetimeutc", inplace=True)
+    return data_frame
+
+def get_daily_weather_data(data_frame: pd.DataFrame) -> pd.DataFrame:
+    daily_weather = data_frame.resample("D").mean()
+    daily_weather.fillna(daily_weather.mean(), inplace=True)
+    daily_weather = pd.DataFrame(list(daily_weather['tempm']), columns=['temp'])
+    return daily_weather
+
+def normalize_data(data_frame: pd.DataFrame) -> pd.DataFrame:
+    scaler = MinMaxScaler(feature_range=(-1,1))
+    return scaler.fit_transform(data_frame)
+
+def get_training_data(data_frame: pd.DataFrame, num_days: int = 30) -> List:
+    X = []
+    Y = []
+    for i in range(len(data_frame)- num_days):
+        X.append(data_frame[i: i + num_days])
+        Y.append(data_frame[i + num_days])
+
+    X=np.array(X)
+    Y=np.array(Y)
+    return [X,Y]
+
 
 if __name__ == "__main__":
     df = read_csv("../data/raw/delhi_weather_data.csv")
