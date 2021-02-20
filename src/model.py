@@ -7,7 +7,6 @@ from tensorflow.keras import models, layers, optimizers, callbacks
 
 def create_model(loss: str = "mae", lr: float = 0.0001) -> models.Sequential:
     """Create a Tensorflow Keras model with LSTM and Conv1D layers with mae and lr of 0.0001 as default parameters."""
-
     model = models.Sequential()
     model.add(layers.Conv1D(filters=128, kernel_size=2, activation="relu", input_shape=(30,1)))
     model.add(layers.Conv1D(filters=128, kernel_size=2, activation="relu"))
@@ -27,6 +26,7 @@ def create_model(loss: str = "mae", lr: float = 0.0001) -> models.Sequential:
     return model
 
 def train_model(model, X_train, y_train, epochs: int = 200):
+    """Training the model with early stopping and model checkpoint."""
     early_stopping = callbacks.EarlyStopping(monitor="loss", mode="min", patience=5, restore_best_weights=True)
     save_model_checkpoint = callbacks.ModelCheckpoint(filepath="saved_model/model_v1.h5", monitor="loss", save_best_only=True)
     return model.fit(X_train, y_train, epochs=epochs, callbacks=[early_stopping, save_model_checkpoint])

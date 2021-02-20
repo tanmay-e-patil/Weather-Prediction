@@ -1,5 +1,5 @@
 """
-Preprocessing num_days done on the Delhi weather dataset.
+Preprocessing done on the Delhi weather dataset.
 
 Written by Tanmay Patil
 """
@@ -67,29 +67,33 @@ def wind_dir_to_deg(data_frame: pd.DataFrame, deg: int = 45) -> pd.DataFrame:
     return data_frame
 
 def object_to_date_time(data_frame: pd.DataFrame) -> pd.DataFrame:
+    """Converts the datatype of the datetimeutc column from object to pandas datetime"""
     data_frame["datetimeutc"] = pd.to_datetime(data_frame["datetimeutc"])
     data_frame.set_index("datetimeutc", inplace=True)
     return data_frame
 
 def get_daily_weather_data(data_frame: pd.DataFrame) -> pd.DataFrame:
+    """Get daily temperature data and remove any na values by their mean"""
     daily_weather = data_frame.resample("D").mean()
     daily_weather.fillna(daily_weather.mean(), inplace=True)
     daily_weather = pd.DataFrame(list(daily_weather['tempm']), columns=['temp'])
     return daily_weather
 
 def normalize_data(data_frame: pd.DataFrame) -> pd.DataFrame:
+    """Scale the data using the MinMax scaler"""
     scaler = MinMaxScaler(feature_range=(-1,1))
     return scaler.fit_transform(data_frame)
 
 def get_training_data(data_frame: pd.DataFrame, num_days: int = 30) -> List:
+    """The dataframe is converted to a timeseries where X will have the temperatures of the last (num_days) and Y would have the temperature of the next day"""
     X = []
     Y = []
     for i in range(len(data_frame)- num_days):
         X.append(data_frame[i: i + num_days])
         Y.append(data_frame[i + num_days])
 
-    X=np.array(X)
-    Y=np.array(Y)
+    X = np.array(X)
+    Y = np.array(Y)
     return [X,Y]
 
 
